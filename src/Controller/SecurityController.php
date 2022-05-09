@@ -22,12 +22,19 @@ class SecurityController extends AbstractController
         $this->manager = $manager;
     }
 
-    /**
-     * @Route("/register", name="security_register")
+   /**
+     * @Route("/register/{user_type}", name="security_register")
      */
-    public function register(Request $request, UserPasswordHasherInterface  $passwordHasher): Response
+    public function register(Request $request, UserPasswordHasherInterface  $passwordHasher, $user_type): Response
+
     {
         $user = new User();
+        
+        if($user_type === "admin" && $this->isGranted('ROLE_SUPER_ADMIN')){
+            $user->setRoles(['ROLE_ADMIN']);
+        }
+
+       
         $form = $this->createForm(RegisterType::class, $user);
 
         $form->handleRequest($request);
@@ -37,7 +44,7 @@ class SecurityController extends AbstractController
 
             $this->manager->persist($user);
             $this->manager->flush();
-            return $this->redirectToRoute("security_login");
+            return $this->redirectToRoute("security/login.html.twig");
         }
 
         return $this->render('security/index.html.twig', [
@@ -51,9 +58,7 @@ class SecurityController extends AbstractController
      */
     public function login(): Response
     {
-        return $this->render('security/login.html.twig', [
-            
-        ]);
+        return $this->render('security/login.html.twig', []);
     }
     /**
      * @Route("/logout", name="security_logout")
